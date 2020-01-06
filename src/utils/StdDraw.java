@@ -61,7 +61,7 @@ import java.io.IOException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.NoSuchElementException;
@@ -73,7 +73,14 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
+
+import algorithms.Graph_Algo;
+import dataStructure.Node;
+import dataStructure.graph;
+import dataStructure.node_data;
+import gui.Gui;
 
 /**
  *  The {@code StdDraw} class provides a basic capability for
@@ -712,16 +719,37 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 		frame.setVisible(true);
 	}
 
-	// create the menu bar (changed to private)
-	private static JMenuBar createMenuBar() {
+
+	public static JMenuBar createMenuBar() {
 		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = new JMenu("File");
-		menuBar.add(menu);
-		JMenuItem menuItem1 = new JMenuItem(" Save...   ");
-		menuItem1.addActionListener(std);
-		menuItem1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+		JMenu file = new JMenu("File");
+		JMenu myAlgo = new JMenu("myAlgo");
+		menuBar.add(file);
+		menuBar.add(myAlgo);
+		JMenuItem save = new JMenuItem("Save");
+		JMenuItem load = new JMenuItem("Load");
+		JMenuItem draw = new JMenuItem("Draw");
+		save.addActionListener(std);
+		load.addActionListener(std);
+		draw.addActionListener(std);
+		save.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
 				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
-		menu.add(menuItem1);
+		file.add(save);
+		file.add(load);
+		file.add(draw);
+		JMenuItem isConnect = new JMenuItem("isConnected");
+		JMenuItem shortPathDist = new JMenuItem("shortestPathDist");
+		JMenuItem shortPathRoad = new JMenuItem("shortestPathRoad");
+		JMenuItem tsp = new JMenuItem("TSP");
+
+		myAlgo.add(isConnect);
+		myAlgo.add(shortPathDist);
+		myAlgo.add(shortPathRoad);
+		myAlgo.add(tsp);
+		isConnect.addActionListener(std);
+		shortPathDist.addActionListener(std);
+		shortPathRoad.addActionListener(std);
+		tsp.addActionListener(std);
 		return menuBar;
 	}
 
@@ -1649,17 +1677,75 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	}
 
 
+	public static void load(String filename) {
+		System.out.println(filename);
+		if (filename == null) throw new IllegalArgumentException();
+		ga.init(filename);
+
+	}
 	/**
 	 * This method cannot be called directly.
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		FileDialog chooser = new FileDialog(StdDraw.frame, "Use a .png or .jpg extension", FileDialog.SAVE);
-		chooser.setVisible(true);
-		String filename = chooser.getFile();
-		if (filename != null) {
-			StdDraw.save(chooser.getDirectory() + File.separator + chooser.getFile());
+		
+		if(e.getActionCommand().equals("Save")){
+			FileDialog chooser = new FileDialog(StdDraw.frame, "Use a .png or .jpg extension", FileDialog.SAVE);
+			chooser.setVisible(true);
+			String filename = chooser.getFile();
+			if (filename != null) {
+				//StdDraw.save(chooser.getDirectory() + File.separator + chooser.getFile());
+				ga.save(chooser.getDirectory() + File.separator + chooser.getFile());
+				System.out.println(chooser.getDirectory() + File.separator + chooser.getFile());
+
+			}
 		}
+		else if(e.getActionCommand().equals("Load")){
+			FileDialog chooser = new FileDialog(StdDraw.frame, "Use a .png or .jpg extension", FileDialog.SAVE);
+			chooser.setVisible(true);
+			String filename = chooser.getFile();
+			if (filename != null) {
+				System.out.println(chooser.getDirectory()  + chooser.getFile());
+				ga.init(chooser.getDirectory()  + chooser.getFile());
+				gui.init(ga);
+				//StdDraw.load(chooser.getDirectory() + File.separator + chooser.getFile());
+
+			}
+		}
+		else if(e.getActionCommand().equals("shortestPathDist")){
+			String s=JOptionPane.showInputDialog(null, "insert the src and dest like x,y");
+			String str[]=s.split(",");
+			try{
+				System.out.println(ga.shortestPathDist(Integer.parseInt(str[0]), Integer.parseInt(str[1])));
+			}catch(Exception exe){
+				JOptionPane.showMessageDialog(null, "The path does not exist");
+			
+			}
+			
+
+		}
+		else if(e.getActionCommand().equals("shortestPathRoad")){
+			String s=JOptionPane.showInputDialog(null,"insert the src and dest like x,y");
+			String str[]=s.split(",");
+			try{
+				ArrayList<node_data> list=(ArrayList<node_data>) ga.shortestPath(Integer.parseInt(str[0]), Integer.parseInt(str[1]));
+				for(int i=0;i<list.size();i++){
+					System.out.println(list.get(i).getKey());
+				}
+			}
+			catch(Exception exe){
+				JOptionPane.showMessageDialog(null, "The edge does not exist");
+			}
+			
+
+		}
+		else if(e.getActionCommand().equals("Draw")){
+			draw=true;
+		}
+		else if(e.getActionCommand().equals("isConnected")){
+			System.out.println(ga.isConnected());
+		}
+
 	}
 
 
@@ -1744,6 +1830,13 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	@Override
 	public void mousePressed(MouseEvent e) {
 		synchronized (mouseLock) {
+			if(draw){
+				StdDraw.setPenColor(Color.BLACK);
+				StdDraw.filledCircle(StdDraw.mouseX, StdDraw.mouseY,9);
+				System.out.println(StdDraw.mouseX+","+StdDraw.mouseY);
+				StdDraw.text(StdDraw.mouseX, StdDraw.mouseY + 20, "" + this.ga.getGraph().nodeSize());
+				this.ga.getGraph().addNode(new Node(new Point3D(StdDraw.mouseX,StdDraw.mouseY),0));
+			}
 			mouseX = StdDraw.userX(e.getX());
 			mouseY = StdDraw.userY(e.getY());
 			isMousePressed = true;
@@ -1766,6 +1859,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	@Override
 	public void mouseDragged(MouseEvent e)  {
 		synchronized (mouseLock) {
+
 			mouseX = StdDraw.userX(e.getX());
 			mouseY = StdDraw.userY(e.getY());
 		}
@@ -1878,6 +1972,9 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	 *
 	 * @param args the command-line arguments
 	 */
+	public static Graph_Algo ga=new Graph_Algo();
+	public static Gui gui=new Gui();
+	public static boolean draw=false;
 	public static void main(String[] args) {
 		StdDraw.square(0.2, 0.8, 0.1);
 		StdDraw.filledSquare(0.8, 0.8, 0.2);

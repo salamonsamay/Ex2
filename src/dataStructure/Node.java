@@ -25,6 +25,16 @@ public class Node implements node_data{
 		this.info =info;
 	}
 	
+	public Node(Point3D location){
+		this.key=counter++;
+		this.location = location;
+	}
+	public Node(Point3D location, double weight){
+		this.key=counter++;
+		this.location = location;
+		this.weight = weight;
+		info="";
+	}
 
 	public void addEdge(Edge e){
 
@@ -47,12 +57,7 @@ public class Node implements node_data{
 	public edge_data removeEdge(int dest){
 		return edgeList.remove(dest);
 	}
-	public Node(Point3D location, double weight){
-		this.key=counter++;
-		this.location = location;
-		this.weight = weight;
-		info="";
-	}
+	
 
 	@Override
 	public int getKey() {
